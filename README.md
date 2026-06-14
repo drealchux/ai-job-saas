@@ -1,4 +1,4 @@
-# AI Job Listing SaaS - Production-Grade Job Search Platform
+# AI Job Listing SaaS - Job Search Platform
 
 A scalable, production-ready SaaS application that uses LLMs to understand natural language job queries and scrapes job listings from multiple sources asynchronously.
 
