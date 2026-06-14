@@ -12,7 +12,7 @@ This project demonstrates enterprise-grade architecture patterns:
 
 ## Architecture
 
-![System Architecture](docs/architecture.png)
+![System Architecture](docs/architecture.jpg)
 
 ```
                         ┌─────────────┐
