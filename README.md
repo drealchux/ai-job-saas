@@ -145,12 +145,14 @@ A parsed job listing extracted from Snapshot data.
 
 ```
 ai_job_saas/
-├── config/                    # Django project settings
+├── config/                   # Django project settings
 │   ├── __init__.py           # Celery app initialization
 │   ├── settings.py           # Django configuration
 │   ├── urls.py               # Root URL routing
 │   ├── wsgi.py               # WSGI entry point
 │   └── celery.py             # Celery configuration
+├── docs/
+│   ├── architecture.jpg      # Architectural Desgin
 ├── accounts/                 # User authentication
 │   ├── models.py
 │   ├── views.py
@@ -164,14 +166,15 @@ ai_job_saas/
 │   ├── tasks.py              # Celery async tasks
 │   └── urls.py
 ├── templates/
+│   ├── base.html
 │   └── jobs/
 │       ├── search.html       # Job search form
 │       └── results.html      # Results display
 ├── docker-compose.yml        # Full system orchestration
-├── Dockerfile               # Application container
-├── requirements.txt         # Python dependencies
-├── .env.example            # Environment template
-└── README.md               # This file
+├── Dockerfile                # Application container
+├── requirements.txt          # Python dependencies
+├── .env                      # Environment template
+└── README.md                 # This file
 ```
 
 ## Quick Start
