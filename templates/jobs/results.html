@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Job Search Results{% endblock %}
+
+{% block content %}
+<div class="results-container">
+    <h2>Job Search Results</h2>
+    <p class="query-summary">Query: <em>{{ llm_result.prompt }}</em></p>
+    <p class="result-count">Found <strong>{{ total_jobs }}</strong> job listings</p>
+    
+    {% if job_listings %}
+    <div class="job-listings">
+        {% for job in job_listings %}
+        <div class="job-card">
+            <div class="job-header">
+                <h3 class="job-title">{{ job.title }}</h3>
+                <span class="job-source badge badge-{{ job.source }}">{{ job.source }}</span>
+            </div>
+            
+            <p class="job-company">{{ job.company }}</p>
+            <p class="job-location">📍 {{ job.location }}</p>
+            
+            {% if job.salary %}
+            <p class="job-salary">💰 {{ job.salary }}</p>
+            {% endif %}
+            
+            {% if job.job_type %}
+            <p class="job-type">{{ job.job_type }}</p>
+            {% endif %}
+            
+            {% if job.summary %}
+            <p class="job-summary">{{ job.summary }}</p>
+            {% endif %}
+            
+            <div class="job-actions">
+                <a href="{{ job.url }}" target="_blank" class="btn btn-secondary">View Job</a>
+                <button onclick="showJobDetails({{ job.id }})" class="btn btn-tertiary">Details</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <p>No jobs found. Try a different search query.</p>
+    </div>
+    {% endif %}
+    
+    <a href="{% url 'jobs:search_page' %}" class="btn btn-primary">New Search</a>
+</div>
+
+<script>
+async function showJobDetails(jobId) {
+    try {
+        const response = await fetch(`/api/jobs/listing/${jobId}/`);
+        const job = await response.json();
+        
+        alert(`
+Title: ${job.title}
+Company: ${job.company}
+Location: ${job.location}
+Salary: ${job.salary || 'Not specified'}
+Type: ${job.job_type}
+
+Description:
+${job.description.substring(0, 500)}...
+        `);
+    } catch (error) {
+        alert('Failed to load job details');
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Job Search{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <h2>Find Your Next Job</h2>
+    <p>Describe the job you're looking for in natural language.</p>
+    
+    <form id="search-form" class="search-form">
+        {% csrf_token %}
+        
+        <textarea 
+            name="query" 
+            id="query-input" 
+            placeholder="e.g., ML engineer in Paris, remote, fintech startup, senior level"
+            required></textarea>
+        
+        <button type="submit" class="btn btn-primary">Search Jobs</button>
+    </form>
+    
+    <div id="search-status" class="search-status hidden">
+        <div class="spinner"></div>
+        <p id="status-message">Finding jobs...</p>
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+        </div>
+    </div>
+    
+    <div id="error-message" class="alert alert-danger hidden"></div>
+</div>
+
+<script>
+document.getElementById('search-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const query = document.getElementById('query-input').value;
+    const statusDiv = document.getElementById('search-status');
+    const errorDiv = document.getElementById('error-message');
+    
+    statusDiv.classList.remove('hidden');
+    errorDiv.classList.add('hidden');
+    
+    try {
+        const response = await fetch('/api/jobs/submit/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify({ query })
+        });
+        
+        if (!response.ok) throw new Error('Failed to submit query');
+        
+        const data = await response.json();
+        const llmResultId = data.llm_result_id;
+        
+        pollSearchStatus(llmResultId);
+        
+    } catch (error) {
+        errorDiv.textContent = error.message;
+        errorDiv.classList.remove('hidden');
+        statusDiv.classList.add('hidden');
+    }
+});
+
+async function pollSearchStatus(llmResultId) {
+    const maxAttempts = 120;
+    const pollInterval = 1000;
+    let attempts = 0;
+    
+    const interval = setInterval(async () => {
+        attempts++;
+        
+        if (attempts > maxAttempts) {
+            clearInterval(interval);
+            document.getElementById('error-message').textContent = 'Search timed out. Please try again.';
+            document.getElementById('search-status').classList.add('hidden');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/jobs/status/${llmResultId}/`);
+            const data = await response.json();
+            
+            const progress = (data.snapshots_ready / data.snapshot_count) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+            document.getElementById('status-message').textContent = 
+                `Processing... ${data.snapshots_ready}/${data.snapshot_count} sources ready`;
+            
+            if (data.status === 'ready') {
+                clearInterval(interval);
+                window.location.href = `/jobs/results/${llmResultId}/`;
+            }
+            
+            if (data.status === 'failed') {
+                clearInterval(interval);
+                document.getElementById('error-message').textContent = 'Search failed. Please try again.';
+                document.getElementById('search-status').classList.add('hidden');
+            }
+            
+        } catch (error) {
+            console.error('Poll error:', error);
+        }
+    }, pollInterval);
+}
+</script>
+{% endblock %}
